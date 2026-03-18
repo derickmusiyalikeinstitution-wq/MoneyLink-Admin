@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Assumed Data Model
+    // Collection: users
+    // Document ID: userId
+    // Fields: id, name, phone, nrc, password, isRegistered, isVerified, balance, adminId
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+    
+    // Collection: agents
+    // Document ID: agentId
+    // Fields: id, name, status, adminId
+    match /agents/{agentId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    // Collection: tasks
+    // Document ID: taskId
+    // Fields: id, title, description, status, assignedTo
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+  }
+}
